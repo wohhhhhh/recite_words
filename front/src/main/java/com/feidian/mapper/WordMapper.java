@@ -1,6 +1,7 @@
-package mapper;
+package com.feidian.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.feidian.domain.entity.Word;
 
 
 /**

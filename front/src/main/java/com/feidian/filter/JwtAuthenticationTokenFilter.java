@@ -1,12 +1,12 @@
-package com.feidain.filter;
+package com.feidian.filter;
 
 import com.alibaba.fastjson.JSON;
-import com.feidain.domain.entity.LoginUser;
-import com.feidain.domain.entity.ResponseResult;
-import com.feidain.enums.AppHttpCodeEnum;
-import com.feidain.utils.JwtUtil;
-import com.feidain.utils.RedisCache;
-import com.feidain.utils.WebUtils;
+import com.feidian.domain.entity.LoginUser;
+import com.feidian.domain.entity.ResponseResult;
+import com.feidian.enums.AppHttpCodeEnum;
+import com.feidian.utils.JwtUtil;
+import com.feidian.utils.RedisCache;
+import com.feidian.utils.WebUtils;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -51,7 +51,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         }
         String userId = claims.getSubject();
         //从redis中获取用户信息
-        LoginUser loginUser = redisCache.getCacheObject("bloglogin:" + userId);
+        LoginUser loginUser = redisCache.getCacheObject("login:" + userId);
         //如果获取不到
         if(Objects.isNull(loginUser)){
             //说明登录过期  提示重新登录

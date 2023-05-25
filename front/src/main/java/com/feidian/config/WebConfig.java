@@ -1,4 +1,4 @@
-package com.feidain.config;
+package com.feidian.config;
 
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -31,16 +31,18 @@ public class WebConfig implements WebMvcConfigurer {
                 // 跨域允许时间
                 .maxAge(3600);
     }
-    @Bean//使用@Bean注入fastJsonHttpMessageConvert
+    @Bean
+    // 使用@Bean注入fastJsonHttpMessageConvert
     public HttpMessageConverter fastJsonHttpMessageConverters() {
-        //1.需要定义一个Convert转换消息的对象
+        // 1.需要定义一个Convert转换消息的对象,这里使用FastJsonHttpMessageConverter
         FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
         FastJsonConfig fastJsonConfig = new FastJsonConfig();
+        // 设置fastjson的序列化配置, 如日期格式、是否格式化输出等
         fastJsonConfig.setSerializerFeatures(SerializerFeature.PrettyFormat);
         fastJsonConfig.setDateFormat("yyyy-MM-dd HH:mm:ss");
 
+        // 将Long类型序列化为String
         SerializeConfig.globalInstance.put(Long.class, ToStringSerializer.instance);
-
         fastJsonConfig.setSerializeConfig(SerializeConfig.globalInstance);
         fastConverter.setFastJsonConfig(fastJsonConfig);
         HttpMessageConverter<?> converter = fastConverter;
@@ -48,7 +50,9 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
+    //重写WebMvcConfigurer的configureMessageConverters方法
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        /*添加fastjson消息转换器*/
         converters.add(fastJsonHttpMessageConverters());
     }
 

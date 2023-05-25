@@ -1,9 +1,9 @@
-package com.feidain.service.impl;
+package com.feidian.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.feidain.domain.entity.LoginUser;
-import com.feidain.domain.entity.User;
-import com.feidain.mapper.UserMapper;
+import com.feidian.domain.entity.LoginUser;
+import com.feidian.domain.entity.User;
+import com.feidian.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,7 +22,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         //根据用户名查询用户信息
         LambdaQueryWrapper<User> queryWrapper=new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername,username);
+        queryWrapper.eq(User::getUserName,username);
         User user=userMapper.selectOne(queryWrapper);
         //判断是否查看用户  如果没查到抛出异常
         if(Objects.isNull(user)){

@@ -1,4 +1,4 @@
-package com.feidain.utils;
+package com.feidian.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;

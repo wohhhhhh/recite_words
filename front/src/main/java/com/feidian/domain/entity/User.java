@@ -1,8 +1,7 @@
-package com.feidain.domain.entity;
+package com.feidian.domain.entity;
 
 import java.util.Date;
 
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,21 +20,23 @@ import com.baomidou.mybatisplus.annotation.TableName;
 @TableName("user")
 public class User  {
     @TableId
-    private Object id;
+    private Integer id;
 
-    
-    private String username;
+    private String userName;
     
     private String password;
     
     private String email;
+
+    private String phone;
     
-    private Object isAdmin;
+    private Integer isAdmin;
+
+    private Integer gender;
     
     private Date gmtCreate;
     
     private Date gmtModified;
-
 
 }
 

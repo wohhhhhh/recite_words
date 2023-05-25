@@ -1,7 +1,7 @@
-package com.feidain.handler.exception;
+package com.feidian.handler.exception;
 
-import com.feidain.domain.entity.ResponseResult;
-import com.feidain.enums.AppHttpCodeEnum;
+import com.feidian.domain.entity.ResponseResult;
+import com.feidian.enums.AppHttpCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

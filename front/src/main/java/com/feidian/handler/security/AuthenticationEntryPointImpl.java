@@ -1,4 +1,4 @@
-package com.feidain.handler.security;
+package com.feidian.handler.security;
 
 import com.alibaba.fastjson.JSON;
 import com.feidian.domain.entity.ResponseResult;

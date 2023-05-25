@@ -1,4 +1,4 @@
-package com.feidain.utils;
+package com.feidian.utils;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;

@@ -1,6 +1,6 @@
-package com.feidain.handler.exception;
+package com.feidian.handler.exception;
 
-import com.feidain.enums.AppHttpCodeEnum;
+import com.feidian.enums.AppHttpCodeEnum;
 
 public class SystemException extends RuntimeException{
 

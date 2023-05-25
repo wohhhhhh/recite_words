@@ -1,4 +1,4 @@
-package com.feidain.domain.entity;
+package com.feidian.domain.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +15,6 @@ public class LoginUser implements UserDetails {
     private User user;
 
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -28,7 +27,7 @@ public class LoginUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return user.getUserName();
     }
 
     @Override

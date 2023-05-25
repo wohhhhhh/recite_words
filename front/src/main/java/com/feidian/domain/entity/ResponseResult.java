@@ -1,7 +1,7 @@
-package com.feidain.domain.entity;
+package com.feidian.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.feidain.enums.AppHttpCodeEnum;
+import com.feidian.enums.AppHttpCodeEnum;
 
 
 import java.io.Serializable;

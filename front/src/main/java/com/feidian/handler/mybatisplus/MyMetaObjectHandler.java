@@ -1,4 +1,4 @@
-package com.feidain.handler.mybatisplus;
+package com.feidian.handler.mybatisplus;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.feidian.utils.SecurityUtils;
@@ -11,12 +11,12 @@ import java.util.Date;
 public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
-        Long userId = null;
+        Integer userId = null;
         try {
             userId = SecurityUtils.getUserId();
         } catch (Exception e) {
             e.printStackTrace();
-            userId = -1L;//表示是自己创建
+            userId = -1;//表示是自己创建
         }
         this.setFieldValByName("createTime", new Date(), metaObject);
         this.setFieldValByName("createBy",userId , metaObject);

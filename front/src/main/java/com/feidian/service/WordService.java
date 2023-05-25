@@ -1,6 +1,10 @@
-package service;
+package com.feidian.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.feidian.domain.entity.ResponseResult;
+import com.feidian.domain.entity.Word;
+
+import java.util.List;
 
 
 /**
@@ -11,5 +15,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface WordService extends IService<Word> {
 
+    ResponseResult viewWordDetail(Long id);
+
+    ResponseResult searchWordDetail(String word);
+
+    void deleteWords(List<Word> words);
 }
 

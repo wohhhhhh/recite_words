@@ -1,4 +1,4 @@
-package com.feidian.domain.entity.vo;
+package com.feidian.domain.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package entity;
+package com.feidian.domain.entity;
 
 import java.util.Date;
 
@@ -22,11 +22,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 public class Word  {
     @TableId
     private Integer id;
-
     
     private Integer wordbookId;
     
-    private String word;
+    private String value;
     
     private String meaningChinese;
     
@@ -35,7 +34,5 @@ public class Word  {
     private Date gmtCreate;
     
     private Date gmtModified;
-
-
 }
 

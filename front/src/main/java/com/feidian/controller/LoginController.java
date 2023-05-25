@@ -18,10 +18,15 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseResult login(@RequestBody User user){
-        if(!StringUtils.hasText(user.getUsername())){
+        if(!StringUtils.hasText(user.getUserName())){
             //提示 必须要传用户名
             throw new SystemException(AppHttpCodeEnum.REQUIRE_USERNAME);
         }
         return LoginService.login(user);
+    }
+
+    @PostMapping("/logout")
+    public ResponseResult logout(){
+        return LoginService.logout();
     }
 }
