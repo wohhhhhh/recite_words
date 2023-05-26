@@ -10,4 +10,8 @@ public class SystemConstants {
     public static final int USER_CHOOSE_REMEMBER = 1;
     public static final int USER_CHOOSE_VAGUE = 2;
     public static final int USER_CHOOSE_NOT_REMEMBER = 3;
+
+    // 莱特纳盒子最多4级，最少0级
+    public static final int USER_MASTERED = 4;
+    public static final int USER_UNFAMILIAR = 0;
 }

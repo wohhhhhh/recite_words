@@ -46,10 +46,10 @@ public class RememberServiceImpl implements RememberService {
     @Autowired
     UserMapper userMapper;
 
-    int rememberNumber=0;
-    int lastNumber=0;
-    int userId=0;
-    Set<Word> rememberWords=new TreeSet<>();
+    int rememberNumber = 0;
+    int lastNumber = 0;
+    int userId = 0;
+    Set<Word> rememberWords = new TreeSet<>();
     // 刚开始第一轮的索引
     // int beginIndex=0;
     // 循环索引
@@ -107,10 +107,10 @@ public class RememberServiceImpl implements RememberService {
         int memoryCount = user.getMemoryCount();
         //根据判断条件选择Word集合
         LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userWordLambdaQueryWrapper.eq(UserWord::getUserId,userId);
+        userWordLambdaQueryWrapper.eq(UserWord::getUserId, userId);
         LambdaQueryWrapper<Word> wordLambdaQueryWrapper = new LambdaQueryWrapper<>();
         String[] judgingCondition = rememberStartDTO.getJudgingCondition();
-        if (judgingCondition !=null){
+        if (judgingCondition != null) {
             List<String> list = Arrays.asList(judgingCondition);
             boolean contains = list.contains("单词书");
             if (contains) {
@@ -118,23 +118,23 @@ public class RememberServiceImpl implements RememberService {
             }
             contains = list.contains("已背单词");
             if (contains) {
-                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar,SystemConstants.USER_IS_FAMILIAR);
+                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar, SystemConstants.USER_IS_FAMILIAR);
             }
             contains = list.contains("未背单词");
             if (contains) {
-                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar,SystemConstants.USER_IS_NOT_FAMILIAR);
+                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar, SystemConstants.USER_IS_NOT_FAMILIAR);
             }
         }
 
         // 判断该取什么记忆状态的userWord对象
-        List<UserWord> userWordList =selectByMemoryCount(userWordLambdaQueryWrapper,memoryCount);
+        List<UserWord> userWordList = selectByMemoryCount(userWordLambdaQueryWrapper, memoryCount);
         //单词书的wordId
-        List<Word> wordList=wordMapper.selectList(wordLambdaQueryWrapper);
-        Set<Integer> firstWordIds =new TreeSet<>();
+        List<Word> wordList = wordMapper.selectList(wordLambdaQueryWrapper);
+        Set<Integer> firstWordIds = new TreeSet<>();
         firstWordIds = wordList.stream()
                 .map(word -> word.getId())
                 .collect(Collectors.toSet());
-        Set<Integer> secondWordIds =new TreeSet<>();
+        Set<Integer> secondWordIds = new TreeSet<>();
         secondWordIds = userWordList.stream()
                 .map(userWord -> userWord.getWordId())
                 .collect(Collectors.toSet());
@@ -152,19 +152,23 @@ public class RememberServiceImpl implements RememberService {
 
 
         // 使用BeanCopyUtils拷贝对象
-        List<Word> wordVOS = BeanCopyUtils.copyBeanList(words, Word.class);
-        RememberStartVO vo =new RememberStartVO(userId,false,false,wordVOS);
+        List<RememberWordVO> wordVOS = BeanCopyUtils.copyBeanList(words, RememberWordVO.class);
+        for (RememberWordVO wordVO : wordVOS) {
+            wordVO.setFin(false);
+            wordVO.setIscover(false);
+        }
+        RememberStartVO vo = new RememberStartVO(userId, wordVOS);
         return ResponseResult.okResult(vo);
     }
 
     private List<UserWord> selectByMemoryCount(LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper, int memoryCount) {
         Set<Integer> memoryStateSet = new HashSet<>();
-        memoryStateSet.add(1);
+        memoryStateSet.add(0);
 
-        if (memoryCount % 2 == 0) memoryStateSet.add(2);
-        if (memoryCount % 3 == 0) memoryStateSet.add(3);
-        if (memoryCount % 5 == 0) memoryStateSet.add(4);
-        if (memoryCount % 7 == 0) memoryStateSet.add(5);
+        if (memoryCount % 2 == 0) memoryStateSet.add(1);
+        if (memoryCount % 3 == 0) memoryStateSet.add(2);
+        if (memoryCount % 5 == 0) memoryStateSet.add(3);
+        if (memoryCount % 7 == 0) memoryStateSet.add(4);
 
         userWordLambdaQueryWrapper.in(UserWord::getMemoryState, memoryStateSet);
 
@@ -174,6 +178,7 @@ public class RememberServiceImpl implements RememberService {
 
     /**
      * 插入UserWord对象
+     *
      * @param userId 用户id
      * @param wordId 单词id
      */
@@ -194,7 +199,7 @@ public class RememberServiceImpl implements RememberService {
             newUserWord.setIsFamiliar(0);
             newUserWord.setReviewTimesFamiliar(0);
             newUserWord.setReviewTimesVague(0);
-            Date date=new Date();
+            Date date = new Date();
             newUserWord.setGmtCreate(date);
             newUserWord.setGmtModified(date);
             userWordMapper.insert(newUserWord);
@@ -264,28 +269,36 @@ public class RememberServiceImpl implements RememberService {
     @Override
     public ResponseResult RememberEnd(RememberEndDTO rememberEndDTO) {
         List<RememberWordDTO> rememberWordVOList = rememberEndDTO.getRememberWordVOList();
-        List<UserWord> userWords=new ArrayList<>();
+        List<UserWord> userWords = new ArrayList<>();
         for (RememberWordDTO rememberWordDTO : rememberWordVOList) {
-            LambdaQueryWrapper<UserWord> queryWrapper=new LambdaQueryWrapper<>();
-            queryWrapper.eq(UserWord::getUserId,rememberEndDTO.getUserId());
+            LambdaQueryWrapper<UserWord> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UserWord::getUserId, rememberEndDTO.getUserId());
             // 获取wordId
             int wordId = rememberWordDTO.getWordId();
-            queryWrapper.eq(UserWord::getWordId,wordId);
+            queryWrapper.eq(UserWord::getWordId, wordId);
             UserWord userWord = userWordMapper.selectOne(queryWrapper);
             userWords.add(userWord);
             // 单词莱特纳盒子的级别
             int memoryState = userWord.getMemoryState();
             int rememberState = rememberWordDTO.getRememberState();
-            if (rememberState==SystemConstants.USER_CHOOSE_REMEMBER) {
+            // 判断是否应增加memoryState,当选择记住且memoryState未达到最高级别时应增加
+            boolean shouldIncrease = rememberState == SystemConstants.USER_CHOOSE_REMEMBER
+                    && memoryState < SystemConstants.USER_MASTERED;
+
+            // 判断是否应减少memoryState,当选择不记住且memoryState未达到最低级别时应减少
+            boolean shouldDecrease = rememberState == SystemConstants.USER_CHOOSE_NOT_REMEMBER
+                    && memoryState > SystemConstants.USER_UNFAMILIAR;
+            if (shouldIncrease) {
                 memoryState++;
                 userWord.setMemoryState(memoryState);
-            } else if (rememberState==SystemConstants.USER_CHOOSE_NOT_REMEMBER) {
+            } else if (shouldDecrease) {
                 memoryState--;
-                userWord.setMemoryState(memoryState);
             }
+            userWord.setMemoryState(memoryState);
+            userWord.setMemoryState(memoryState);
         }
 
-        RememberEndVO vo=new RememberEndVO();
+        RememberEndVO vo = new RememberEndVO();
         vo.setUserId(userId);
         vo.setUserWords(userWords);
         return ResponseResult.okResult(vo);

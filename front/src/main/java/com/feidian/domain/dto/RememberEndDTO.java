@@ -11,8 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class RememberEndDTO {
     private Integer userId;
-    private Integer rememberNumber;
-    private Integer wordbookId;
     //测试单词集合
     private List<RememberWordDTO> rememberWordVOList;
 }
