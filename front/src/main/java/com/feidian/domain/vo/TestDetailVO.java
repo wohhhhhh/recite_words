@@ -29,4 +29,5 @@ public class TestDetailVO {
     private Integer accuracy;
 
     private Integer testNumber;
+
 }

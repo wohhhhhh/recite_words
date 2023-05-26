@@ -38,5 +38,7 @@ public class User  {
     
     private Date gmtModified;
 
+    private Integer memoryCount;
+
 }
 

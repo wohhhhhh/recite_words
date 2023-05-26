@@ -13,5 +13,4 @@ import java.util.List;
 public class RememberStartVO {
     private Integer userId;
     private List<Word> wordList;
-
 }

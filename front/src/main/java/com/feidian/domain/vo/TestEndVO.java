@@ -11,5 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TestEndVO {
     private TestDetailVO testDetailVO;
+    private Integer isEnglishChooseChinese;
     private List<QuestionResultVO> questionResults;
 }

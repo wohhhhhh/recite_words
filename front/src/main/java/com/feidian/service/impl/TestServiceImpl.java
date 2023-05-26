@@ -349,7 +349,9 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         test.setEndTime(endTime);
         Duration duration = Duration.between(test.getGmtCreate().toInstant(), test.getGmtCreate().toInstant());
         test.setTestDuration(duration);
-        TestEndVO vo = BeanCopyUtils.copyBean(test, TestEndVO.class);
-        return ResponseResult.okResult(vo);
+        TestDetailVO testDetailVO=BeanCopyUtils.copyBean(test, TestDetailVO.class);
+        testEndVO.setTestDetailVO(testDetailVO);
+        testEndVO.setIsEnglishChooseChinese(testEndDTO.getIsEnglishChooseChinese());
+        return ResponseResult.okResult(testEndVO);
     }
 }

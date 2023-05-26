@@ -36,5 +36,7 @@ public class UserWord  {
     private Date gmtCreate;
     
     private Date gmtModified;
+
+    private Integer memoryState;
 }
 

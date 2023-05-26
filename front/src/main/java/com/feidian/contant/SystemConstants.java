@@ -7,4 +7,7 @@ public class SystemConstants {
     public static final Object USER_IS_NOT_FAMILIAR = 0;
     public static final Integer ENGLISH_CHOOSE_CHINESE = 1;
     public static final Integer CHINESE_CHOOSE_ENGLISH = 0;
+    public static final int USER_CHOOSE_REMEMBER = 1;
+    public static final int USER_CHOOSE_VAGUE = 2;
+    public static final int USER_CHOOSE_NOT_REMEMBER = 3;
 }

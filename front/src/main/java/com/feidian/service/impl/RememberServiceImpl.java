@@ -6,10 +6,12 @@ import com.feidian.contant.SystemConstants;
 import com.feidian.domain.dto.RememberConductDTO;
 import com.feidian.domain.dto.RememberEndDTO;
 import com.feidian.domain.dto.RememberStartDTO;
+import com.feidian.domain.dto.RememberWordDTO;
 import com.feidian.domain.entity.*;
 import com.feidian.domain.vo.*;
 import com.feidian.enums.AppHttpCodeEnum;
 import com.feidian.handler.exception.SystemException;
+import com.feidian.mapper.UserMapper;
 import com.feidian.mapper.UserWordMapper;
 import com.feidian.mapper.WordMapper;
 import com.feidian.mapper.WordbookMapper;
@@ -40,6 +42,9 @@ public class RememberServiceImpl implements RememberService {
 
     @Autowired
     UserWordService userWordService;
+
+    @Autowired
+    UserMapper userMapper;
 
     int rememberNumber=0;
     int lastNumber=0;
@@ -98,7 +103,8 @@ public class RememberServiceImpl implements RememberService {
         int userId = rememberStartDTO.getUserId();
         rememberNumber = rememberStartDTO.getRememberNumber();
         int wordbookId = rememberStartDTO.getWordbookId();
-
+        User user = userMapper.selectById(userId);
+        int memoryCount = user.getMemoryCount();
         //根据判断条件选择Word集合
         LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userWordLambdaQueryWrapper.eq(UserWord::getUserId,userId);
@@ -120,14 +126,15 @@ public class RememberServiceImpl implements RememberService {
             }
         }
 
+
+        // 判断该取什么记忆状态的userWord对象
+        List<UserWord> userWordList =selectByMemoryCount(userWordLambdaQueryWrapper,memoryCount);
         //单词书的wordId
         List<Word> wordList=wordMapper.selectList(wordLambdaQueryWrapper);
         Set<Integer> firstWordIds =new TreeSet<>();
         firstWordIds = wordList.stream()
                 .map(word -> word.getId())
                 .collect(Collectors.toSet());
-
-        List<UserWord> userWordList=userWordMapper.selectList(userWordLambdaQueryWrapper);
         Set<Integer> secondWordIds =new TreeSet<>();
         secondWordIds = userWordList.stream()
                 .map(userWord -> userWord.getWordId())
@@ -148,6 +155,22 @@ public class RememberServiceImpl implements RememberService {
         return ResponseResult.okResult(vo);
         //TODO 构建UserWord对象
     }
+
+    private List<UserWord> selectByMemoryCount(LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper, int memoryCount) {
+        Set<Integer> memoryStateSet = new HashSet<>();
+        memoryStateSet.add(1);
+
+        if (memoryCount % 2 == 0) memoryStateSet.add(2);
+        if (memoryCount % 3 == 0) memoryStateSet.add(3);
+        if (memoryCount % 5 == 0) memoryStateSet.add(4);
+        if (memoryCount % 7 == 0) memoryStateSet.add(5);
+
+        userWordLambdaQueryWrapper.in(UserWord::getMemoryState, memoryStateSet);
+
+        List<UserWord> userWords = userWordMapper.selectList(userWordLambdaQueryWrapper);
+        return userWords;
+    }
+
 
 //    // 记忆模糊的单词集合
 //    List<Word> memoryBlurWords=new ArrayList<>();
@@ -210,9 +233,28 @@ public class RememberServiceImpl implements RememberService {
 
     @Override
     public ResponseResult RememberEnd(RememberEndDTO rememberEndDTO) {
-        LambdaQueryWrapper<UserWord> queryWrapper=new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserWord::getUserId,rememberEndDTO.getUserId());
-        List<UserWord> userWords = userWordMapper.selectList(queryWrapper);
+        List<RememberWordDTO> rememberWordVOList = rememberEndDTO.getRememberWordVOList();
+        List<UserWord> userWords=new ArrayList<>();
+        for (RememberWordDTO rememberWordDTO : rememberWordVOList) {
+            LambdaQueryWrapper<UserWord> queryWrapper=new LambdaQueryWrapper<>();
+            queryWrapper.eq(UserWord::getUserId,rememberEndDTO.getUserId());
+            // 获取wordId
+            int wordId = rememberWordDTO.getWordId();
+            queryWrapper.eq(UserWord::getWordId,wordId);
+            UserWord userWord = userWordMapper.selectOne(queryWrapper);
+            userWords.add(userWord);
+            // 单词莱特纳盒子的级别
+            int memoryState = userWord.getMemoryState();
+            int rememberState = rememberWordDTO.getRememberState();
+            if (rememberState==SystemConstants.USER_CHOOSE_REMEMBER) {
+                memoryState++;
+                userWord.setMemoryState(memoryState);
+            } else if (rememberState==SystemConstants.USER_CHOOSE_NOT_REMEMBER) {
+                memoryState--;
+                userWord.setMemoryState(memoryState);
+            }
+        }
+
         RememberEndVO vo=new RememberEndVO();
         vo.setUserId(userId);
         vo.setUserWords(userWords);
