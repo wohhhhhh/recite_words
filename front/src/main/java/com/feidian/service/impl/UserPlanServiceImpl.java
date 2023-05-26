@@ -51,6 +51,9 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
         if (userPlan.getWordsPerDay() == null) {
             throw new SystemException(AppHttpCodeEnum.WORDSPERDAY_NOT_NULL);
         }
+        if (userPlan.getWordbookId() == null) {
+            throw new SystemException(AppHttpCodeEnum.WORDBOOKID_NOT_NULL);
+        }
         userPlan.setFinishedDays(0);
         userPlan.setFinishedWords(0);
         userPlan.setTodayFinishedWords(0);

@@ -12,8 +12,6 @@ import java.util.List;
 public class TestEndDTO {
     private Integer userId;
     private Integer testId;
-    // 1是英选中，0是中选英
-    private Integer isEnglishChooseChinese;
 
     List<TestQuestionsDTO> testQuestionsDTOS;
 }

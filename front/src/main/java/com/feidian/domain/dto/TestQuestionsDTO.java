@@ -9,5 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TestQuestionsDTO {
     private Integer word_id;
+
     private String choice;
+    private Boolean isEnglishChooseChinese;
 }

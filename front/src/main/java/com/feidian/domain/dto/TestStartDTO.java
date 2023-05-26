@@ -8,10 +8,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestStartDTO {
-    private Integer isEnglishChooseChinese;
+    // Double 类型
+    // 英文选中文比例
+    private Integer englishChooseChineseRatio;
     //1是 0不是
     private Integer testNumber;
     private Integer userId;
     private Integer wordbookId;
     private String[] judgingCondition;
+
 }

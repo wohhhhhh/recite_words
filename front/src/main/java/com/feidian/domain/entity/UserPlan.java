@@ -25,6 +25,8 @@ public class UserPlan  {
     private Integer id;
 
     private Integer userId;
+
+    private Integer wordbookId;
     
     private LocalDate startDate;
     

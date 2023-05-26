@@ -10,7 +10,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestQuestionVO {
-    private WordVO wordVO;
-    private List<String> choices;
     private Integer testQuestionId;
+    private Integer wordId;
+    private String title;
+    private String firstOption;
+    private String secondOption;
+    private String ThirdOption;
+    private String fourOption;
+    private Boolean fin;
+    private Boolean isEnglishChooseChinese;
+
 }

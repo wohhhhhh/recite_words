@@ -38,5 +38,7 @@ public class UserWord  {
     private Date gmtModified;
 
     private Integer memoryState;
+
+    private Integer forgetTime;
 }
 

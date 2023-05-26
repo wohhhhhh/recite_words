@@ -153,7 +153,9 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         Integer userId = testStartDTO.getUserId();
         testNumber = testStartDTO.getTestNumber();
         Integer wordbookId = testStartDTO.getWordbookId();
-
+        int englishChooseChineseRatio = testStartDTO.getEnglishChooseChineseRatio();
+        // 根据比例计算英文选中文题目数量
+        int englishChooseChineseNumber = (int) Math.round(testNumber * englishChooseChineseRatio / 100.0);
         // 构造测试信息
         Test test = new Test();
         test.setUserId(userId);
@@ -214,36 +216,70 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
 
         // 使用BeanCopyUtils拷贝对象
         TestStartVO vo = BeanCopyUtils.copyBean(test,TestStartVO.class);
+        int testMinutes=10*words.size();
+        vo.setTestMinutes(testMinutes);
         // 封装TestQuestion
-        List<TestQuestionVO> testQuestionVOS=packageTestQuestionVOS(words,testStartDTO.getIsEnglishChooseChinese());
+        List<TestQuestionVO> testQuestionVOS=packageTestQuestionVOS(words,englishChooseChineseNumber);
         vo.setTestQuestionVOS(testQuestionVOS);
         return ResponseResult.okResult(vo);
     }
 
-    private List<TestQuestionVO> packageTestQuestionVOS(List<Word> words, Integer isEnglishChooseChinese) {
+    private List<TestQuestionVO> packageTestQuestionVOS(List<Word> words, int englishChooseChineseNumber) {
         int testNumber=1;
         List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
-        List<String> choices = new ArrayList<>();
-        for (int i = 0; i < words.size(); i++) {
+
+        // 生成英文选中文题目
+        for (int i = 0; i < englishChooseChineseNumber; i++) {
             Word word = words.get(i);
-            WordVO wordVO = BeanCopyUtils.copyBean(word, WordVO.class);
             TestQuestionVO testQuestionVO = new TestQuestionVO();
-            testQuestionVO.setWordVO(wordVO);
-            choices.clear();
+            testQuestionVO.setFin(false);
+            testQuestionVO.setFirstOption(word.getMeaningChinese());
+            testQuestionVO.setTitle(word.getValue());
+            // 生成3个选项,并添加到TestQuestionVO
             for (int j = 0; j < 3; j++) {
                 int index = (int) (Math.random() * words.size());
                 Word oneWord = words.get(index);
-                if (isEnglishChooseChinese == 1) {
-                    choices.add(oneWord.getMeaningChinese());
+                if (j == 0) {
+                    testQuestionVO.setSecondOption(oneWord.getMeaningChinese());
+                } else if (j == 1) {
+                    testQuestionVO.setThirdOption(oneWord.getMeaningChinese());
                 } else {
-                    choices.add(oneWord.getValue());
+                    testQuestionVO.setFourOption(oneWord.getMeaningChinese());
                 }
             }
-            testQuestionVO.setChoices(choices);
+
             testQuestionVO.setTestQuestionId(testNumber);
+            testQuestionVO.setIsEnglishChooseChinese(true);
             testQuestionVOS.add(testQuestionVO);
             testNumber++;
         }
+
+        // 生成中文选英文题目
+        for (int i = (int)englishChooseChineseNumber; i < words.size(); i++) {
+            Word word = words.get(i);
+            TestQuestionVO testQuestionVO = new TestQuestionVO();
+            testQuestionVO.setFin(false);
+            testQuestionVO.setTitle(word.getMeaningChinese());
+            testQuestionVO.setFirstOption(word.getValue());
+
+            for (int j = 0; j < 3; j++) {
+                int index = (int) (Math.random() * words.size());
+                Word oneWord = words.get(index);
+                if (j == 0) {
+                    testQuestionVO.setSecondOption(oneWord.getValue());
+                } else if (j == 1) {
+                    testQuestionVO.setThirdOption(oneWord.getValue());
+                } else {
+                    testQuestionVO.setFourOption(oneWord.getValue());
+                }
+            }
+
+            testQuestionVO.setTestQuestionId(testNumber);
+            testQuestionVO.setIsEnglishChooseChinese(false);
+            testQuestionVOS.add(testQuestionVO);
+            testNumber++;
+        }
+
         return testQuestionVOS;
     }
 
@@ -312,36 +348,28 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
     public ResponseResult testEnd(TestEndDTO testEndDTO) {
         TestEndVO testEndVO = new TestEndVO();
         List<QuestionResultVO> questionResults = new ArrayList<>();
-        if (testEndDTO.getIsEnglishChooseChinese() == SystemConstants.ENGLISH_CHOOSE_CHINESE) {
-            //用户选择英文选中文
-            List<TestQuestionsDTO> testQuestionsDTOS = testEndDTO.getTestQuestionsDTOS();
-            for (TestQuestionsDTO testQuestionsDTO : testQuestionsDTOS) {
-                int wordId = testQuestionsDTO.getWord_id();
-                Word correctAnswer = wordMapper.selectById(wordId);
-                boolean equals = testQuestionsDTO.getChoice().equals(correctAnswer.getMeaningChinese());
-                QuestionResultVO questionResultVO = new QuestionResultVO(wordId, correctAnswer.getValue(), equals);
-                questionResults.add(questionResultVO);
-                if (equals = true) {
-                    correct++;
-                }
+        List<TestQuestionsDTO> testQuestionsDTOS = testEndDTO.getTestQuestionsDTOS();
+        int correct = 0;
+        for (TestQuestionsDTO testQuestionsDTO : testQuestionsDTOS) {
+            int wordId = testQuestionsDTO.getWord_id();
+            Word correctAnswer = wordMapper.selectById(wordId);
+            Boolean isEnglishChooseChinese =testQuestionsDTO.getIsEnglishChooseChinese();
+            boolean equals;
+            if (isEnglishChooseChinese) {
+                equals = testQuestionsDTO.getChoice().equals(correctAnswer.getMeaningChinese());
+            } else {
+                equals = testQuestionsDTO.getChoice().equals(correctAnswer.getValue());
             }
-        } else {
-            //用户选择中文选英文
-            List<TestQuestionsDTO> testQuestionsDTOS = testEndDTO.getTestQuestionsDTOS();
-            for (TestQuestionsDTO testQuestionsDTO : testQuestionsDTOS) {
-                int wordId = testQuestionsDTO.getWord_id();
-                Word correctAnswer = wordMapper.selectById(wordId);
-                boolean equals = testQuestionsDTO.getChoice().equals(correctAnswer.getValue());
-                QuestionResultVO questionResultVO = new QuestionResultVO(wordId, correctAnswer.getValue(), equals);
-                questionResults.add(questionResultVO);
-                if (equals = true) {
-                    correct++;
-                }
+            QuestionResultVO questionResultVO = new QuestionResultVO(wordId, correctAnswer.getValue(), equals);
+            questionResults.add(questionResultVO);
+            if (equals) {
+                correct++;
             }
         }
+
         testEndVO.setQuestionResults(questionResults);
         Test test = getById(testEndDTO.getTestId());
-        int accuracy = correct / testNumber;
+        int accuracy = correct * 100 / testQuestionsDTOS.size();
         test.setAccuracy(accuracy);
         Date now = new Date();
         test.setGmtModified(now);
@@ -351,7 +379,6 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         test.setTestDuration(duration);
         TestDetailVO testDetailVO=BeanCopyUtils.copyBean(test, TestDetailVO.class);
         testEndVO.setTestDetailVO(testDetailVO);
-        testEndVO.setIsEnglishChooseChinese(testEndDTO.getIsEnglishChooseChinese());
         return ResponseResult.okResult(testEndVO);
     }
 }

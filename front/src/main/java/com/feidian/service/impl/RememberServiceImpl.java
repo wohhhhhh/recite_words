@@ -49,7 +49,7 @@ public class RememberServiceImpl implements RememberService {
     int rememberNumber = 0;
     int lastNumber = 0;
     int userId = 0;
-    Set<Word> rememberWords = new TreeSet<>();
+//    Set<Word> rememberWords = new TreeSet<>();
     // 刚开始第一轮的索引
     // int beginIndex=0;
     // 循环索引
@@ -102,6 +102,10 @@ public class RememberServiceImpl implements RememberService {
     public ResponseResult startRemember(RememberStartDTO rememberStartDTO) {
         int userId = rememberStartDTO.getUserId();
         rememberNumber = rememberStartDTO.getRememberNumber();
+        boolean isRememberNumberToBig = rememberNumber > 40;
+        if (isRememberNumberToBig) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.REMEMBERNUMBER_TO_BIG,"测试数量超过40，一次别记太多效果不好");
+        }
         int wordbookId = rememberStartDTO.getWordbookId();
         User user = userMapper.selectById(userId);
         int memoryCount = user.getMemoryCount();
@@ -268,7 +272,7 @@ public class RememberServiceImpl implements RememberService {
 
     @Override
     public ResponseResult RememberEnd(RememberEndDTO rememberEndDTO) {
-        List<RememberWordDTO> rememberWordVOList = rememberEndDTO.getRememberWordVOList();
+        List<RememberWordDTO> rememberWordVOList = rememberEndDTO.getRememberWordDTOList();
         List<UserWord> userWords = new ArrayList<>();
         for (RememberWordDTO rememberWordDTO : rememberWordVOList) {
             LambdaQueryWrapper<UserWord> queryWrapper = new LambdaQueryWrapper<>();
@@ -286,15 +290,13 @@ public class RememberServiceImpl implements RememberService {
                     && memoryState < SystemConstants.USER_MASTERED;
 
             // 判断是否应减少memoryState,当选择不记住且memoryState未达到最低级别时应减少
-            boolean shouldDecrease = rememberState == SystemConstants.USER_CHOOSE_NOT_REMEMBER
-                    && memoryState > SystemConstants.USER_UNFAMILIAR;
+            boolean shouldDecrease = rememberState == SystemConstants.USER_CHOOSE_NOT_REMEMBER;
             if (shouldIncrease) {
                 memoryState++;
                 userWord.setMemoryState(memoryState);
             } else if (shouldDecrease) {
-                memoryState--;
+                userWord.setMemoryState(SystemConstants.MEMORY_STATE_LOWEST);
             }
-            userWord.setMemoryState(memoryState);
             userWord.setMemoryState(memoryState);
         }
 
