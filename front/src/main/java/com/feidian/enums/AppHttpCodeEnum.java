@@ -29,7 +29,8 @@ public enum AppHttpCodeEnum {
     TOTALDAYS_NOT_NULL(519, "总天数不能为空"),
     WORDSPERDAY_NOT_NULL(520, "每天单词数量不能为空"),
     STARTDATE_NOT_STANDARDIZED(521,"开始日期不合法" ),
-    MEMORYSTATE_NOT_CORRECT(522,"记忆状态不符合规范" );
+    MEMORYSTATE_NOT_CORRECT(522,"记忆状态不符合规范" ),
+    NOT_THIS_WORD(523, "没有该单词");
     int code;
     String msg;
 

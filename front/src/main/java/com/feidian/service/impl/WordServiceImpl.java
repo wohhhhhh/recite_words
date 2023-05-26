@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.feidian.domain.entity.ResponseResult;
 import com.feidian.domain.entity.Word;
 import com.feidian.domain.vo.WordVO;
+import com.feidian.enums.AppHttpCodeEnum;
 import com.feidian.mapper.WordMapper;
 import com.feidian.service.WordService;
 import com.feidian.utils.BeanCopyUtils;
@@ -44,9 +45,13 @@ public class WordServiceImpl extends ServiceImpl<WordMapper, Word> implements Wo
         queryWrapper.eq(Word::getValue, value);
         //查询Word实体
         Word oneWord = wordService.getOne(queryWrapper);
-        //将Word实体复制为WordVO
-        WordVO vo = BeanCopyUtils.copyBean(oneWord,WordVO.class);
-        return ResponseResult.okResult(vo);
+        if (oneWord != null) { // 如果存在该单词
+            //将Word实体复制为WordVO
+            WordVO vo = BeanCopyUtils.copyBean(oneWord,WordVO.class);
+            return ResponseResult.okResult(vo);
+        } else { // 如果不存在该单词
+            return ResponseResult.errorResult(AppHttpCodeEnum.NOT_THIS_WORD.getCode(),"没有该单词");
+        }
     }
 
     @Override

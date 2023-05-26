@@ -153,9 +153,8 @@ public class RememberServiceImpl implements RememberService {
 
         // 使用BeanCopyUtils拷贝对象
         List<Word> wordVOS = BeanCopyUtils.copyBeanList(words, Word.class);
-        RememberStartVO vo =new RememberStartVO(userId,wordVOS);
+        RememberStartVO vo =new RememberStartVO(userId,false,false,wordVOS);
         return ResponseResult.okResult(vo);
-        //TODO 构建UserWord对象
     }
 
     private List<UserWord> selectByMemoryCount(LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper, int memoryCount) {
@@ -185,13 +184,19 @@ public class RememberServiceImpl implements RememberService {
                 .eq(UserWord::getWordId, wordId));
 
         if (userWord != null) { // 如果已存在,更新
-            userWord.setMemoryState(0); // 设置为未记住
+            userWord.setIsFamiliar(0); // 设置为未记住
             userWordMapper.updateById(userWord);
         } else { // 否则构建新对象插入
             UserWord newUserWord = new UserWord();
             newUserWord.setUserId(userId);
             newUserWord.setWordId(wordId);
-            newUserWord.setMemoryState(0); // 设置为未记住
+            newUserWord.setMemoryState(0);// 设置为未记住
+            newUserWord.setIsFamiliar(0);
+            newUserWord.setReviewTimesFamiliar(0);
+            newUserWord.setReviewTimesVague(0);
+            Date date=new Date();
+            newUserWord.setGmtCreate(date);
+            newUserWord.setGmtModified(date);
             userWordMapper.insert(newUserWord);
         }
     }

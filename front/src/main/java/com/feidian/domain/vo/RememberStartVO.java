@@ -12,5 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RememberStartVO {
     private Integer userId;
+    private Boolean fin;
+    private Boolean iscover;
     private List<Word> wordList;
 }
