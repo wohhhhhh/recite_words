@@ -126,7 +126,6 @@ public class RememberServiceImpl implements RememberService {
             }
         }
 
-
         // 判断该取什么记忆状态的userWord对象
         List<UserWord> userWordList =selectByMemoryCount(userWordLambdaQueryWrapper,memoryCount);
         //单词书的wordId
@@ -147,6 +146,9 @@ public class RememberServiceImpl implements RememberService {
         List<Word> words = testIds.stream()
                 .map(id -> wordMapper.selectById(id))   //根据id查询Word
                 .collect(Collectors.toList());
+        for (Word word : words) {
+            insertUserWord(userId, word.getId());
+        }
 
 
         // 使用BeanCopyUtils拷贝对象
@@ -169,6 +171,29 @@ public class RememberServiceImpl implements RememberService {
 
         List<UserWord> userWords = userWordMapper.selectList(userWordLambdaQueryWrapper);
         return userWords;
+    }
+
+    /**
+     * 插入UserWord对象
+     * @param userId 用户id
+     * @param wordId 单词id
+     */
+    private void insertUserWord(int userId, int wordId) {
+        // 根据userId和wordId查询UserWord
+        UserWord userWord = userWordMapper.selectOne(new LambdaQueryWrapper<UserWord>()
+                .eq(UserWord::getUserId, userId)
+                .eq(UserWord::getWordId, wordId));
+
+        if (userWord != null) { // 如果已存在,更新
+            userWord.setMemoryState(0); // 设置为未记住
+            userWordMapper.updateById(userWord);
+        } else { // 否则构建新对象插入
+            UserWord newUserWord = new UserWord();
+            newUserWord.setUserId(userId);
+            newUserWord.setWordId(wordId);
+            newUserWord.setMemoryState(0); // 设置为未记住
+            userWordMapper.insert(newUserWord);
+        }
     }
 
 
