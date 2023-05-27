@@ -10,7 +10,6 @@ import com.feidian.domain.entity.Word;
 import com.feidian.domain.entity.Wordbook;
 import com.feidian.domain.vo.BookWordVO;
 import com.feidian.domain.vo.WordBookIntroduceVO;
-import com.feidian.domain.vo.WordVO;
 import com.feidian.mapper.UserWordMapper;
 import com.feidian.mapper.WordMapper;
 import com.feidian.mapper.WordbookMapper;
@@ -54,14 +53,13 @@ public class WordbookServiceImpl implements WordbookService {
     WordMapper wordMapper;
 
     @Override
-    public ResponseResult viewWordBookDetail(BookDetailDTO bookDetailDTO) {
-        int id = bookDetailDTO.getWordbookId();
-        int userId =bookDetailDTO.getUserId();
+    public ResponseResult viewWordBookDetail(Integer wordbookId, Integer userId) {
+
         // 查询单词书信息
-        Wordbook wordbook = wordbookMapper.selectById(id);
+        Wordbook wordbook = wordbookMapper.selectById(wordbookId);
         // 查询该单词书包含的单词,进行分页
         LambdaQueryWrapper<Word> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Word::getWordbookId, id);
+        queryWrapper.eq(Word::getWordbookId, wordbookId);
         Page<Word> page = new Page<>(1, 10);
         wordMapper.selectPage(page, queryWrapper);
 

@@ -16,8 +16,8 @@ public class WordbookController {
     public ResponseResult showBookList() {
         return wordBookService.showBookList();
     }
-    @GetMapping("/viewWordBookDetail")
-    public ResponseResult viewWordBookDetail(@RequestBody BookDetailDTO bookDetailDTO){
-        return wordBookService.viewWordBookDetail(bookDetailDTO);
+    @GetMapping("/{wordbook_id}/{user_id}")
+    public ResponseResult viewWordBookDetail(@PathVariable("wordbook_id")Integer wordbookId,@PathVariable("user_id")Integer userId){
+        return wordBookService.viewWordBookDetail(wordbookId,userId);
     }
 }

@@ -34,26 +34,24 @@ public class LoginServiceImpl implements LoginService {
     public ResponseResult login(User user) {
         String password = user.getPassword();
         String encode = passwordEncoder.encode(password);
-//        user.setPassword(encode);
-        System.out.println(encode);
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserName(),user.getPassword());
-            Authentication authenticate = authenticationManager.authenticate(authenticationToken);
-            // 判断是否认证通过
-            if(Objects.isNull(authenticate)){
-                throw new RuntimeException("用户名或密码错误");
-            }
-            // 获取userid 生成token
-            LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
-            String userId = loginUser.getUser().getId().toString();
-            String jwt = JwtUtil.createJWT(userId);
-            // 把用户信息存入redis
-            redisCache.setCacheObject("login:"+userId,loginUser);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserName(),user.getPassword());
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+        // 判断是否认证通过
+        if(Objects.isNull(authenticate)){
+            throw new RuntimeException("用户名或密码错误");
+        }
+        // 获取userid 生成token
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        String userId = loginUser.getUser().getId().toString();
+        String jwt = JwtUtil.createJWT(userId);
+        // 把用户信息存入redis
+        redisCache.setCacheObject("login:"+userId,loginUser);
 
-            // 把token和userinfo封装 返回
-            // 把User转换成UserInfoVo
-            UserInfoVO userInfoVo = BeanCopyUtils.copyBean(loginUser.getUser(), UserInfoVO.class);
-            UserLoginVO vo = new UserLoginVO(jwt,userInfoVo);
-            return ResponseResult.okResult(vo);
+        // 把token和userinfo封装 返回
+        // 把User转换成UserInfoVo
+        UserInfoVO userInfoVo = BeanCopyUtils.copyBean(loginUser.getUser(), UserInfoVO.class);
+        UserLoginVO vo = new UserLoginVO(jwt,userInfoVo);
+        return ResponseResult.okResult(vo);
     }
 
     @Override

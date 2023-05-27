@@ -41,8 +41,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //获取当前时间
         Date now = new Date();
         updateUser.setGmtModified(now);
-        save(updateUser);
-
+        updateById(updateUser);
         return ResponseResult.okResult();
     }
 

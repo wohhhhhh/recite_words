@@ -37,5 +37,7 @@ public class UserPlanVO {
 
     private Date gmtModified;
 
+    private Integer wordbookId;
+
 
 }

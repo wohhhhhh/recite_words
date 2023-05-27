@@ -1,5 +1,6 @@
 package com.feidian.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.feidian.domain.entity.ResponseResult;
 import com.feidian.domain.entity.UserPlan;
@@ -74,7 +75,19 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
         userPlan.setGmtModified(now);
 
         //存入数据库
-        save(userPlan);
+        // 查询userPlan表是否存在userId对应的记录
+        QueryWrapper<UserPlan> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userPlan.getUserId());
+        UserPlan plan = getOne(queryWrapper);
+
+        if (plan != null) {
+            // 记录存在,更新
+            userPlan.setId(plan.getId());
+            updateById(userPlan);
+        } else {
+            // 记录不存在,插入
+            save(userPlan);
+        }
         return ResponseResult.okResult();
 
     }

@@ -10,5 +10,7 @@ import lombok.NoArgsConstructor;
 public class QuestionResultVO {
     private Integer wordId;
     private String wordValue;
+    private String wordChineseMeaning;
+    private String option;
     private Boolean isCorrect;
 }

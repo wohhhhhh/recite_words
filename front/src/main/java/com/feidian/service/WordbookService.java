@@ -6,5 +6,7 @@ import com.feidian.domain.entity.ResponseResult;
 public interface WordbookService {
     ResponseResult showBookList();
 
-    ResponseResult viewWordBookDetail(BookDetailDTO id);
+    ResponseResult viewWordBookDetail(Integer wordbookId, Integer userId);
+
+
 }

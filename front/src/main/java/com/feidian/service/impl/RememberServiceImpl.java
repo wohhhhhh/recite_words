@@ -22,7 +22,6 @@ import com.feidian.utils.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -102,17 +101,20 @@ public class RememberServiceImpl implements RememberService {
     public ResponseResult startRemember(RememberStartDTO rememberStartDTO) {
         int userId = rememberStartDTO.getUserId();
         rememberNumber = rememberStartDTO.getRememberNumber();
+        // 记忆数量不要太大
         boolean isRememberNumberToBig = rememberNumber > 40;
         if (isRememberNumberToBig) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.REMEMBERNUMBER_TO_BIG,"测试数量超过40，一次别记太多效果不好");
+            return ResponseResult.errorResult(AppHttpCodeEnum.REMEMBERNUMBER_TO_BIG,"记忆数量超过40，一次别记太多效果不好");
         }
         int wordbookId = rememberStartDTO.getWordbookId();
         User user = userMapper.selectById(userId);
+        // 获取用户的记忆次数，到时通过记忆次数来决定哪些该背哪些不该背
         int memoryCount = user.getMemoryCount();
         //根据判断条件选择Word集合
         LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userWordLambdaQueryWrapper.eq(UserWord::getUserId, userId);
         LambdaQueryWrapper<Word> wordLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        // 通过用户选择了什么判断条件，来确定最后的背单词的范围
         String[] judgingCondition = rememberStartDTO.getJudgingCondition();
         if (judgingCondition != null) {
             List<String> list = Arrays.asList(judgingCondition);
@@ -131,8 +133,8 @@ public class RememberServiceImpl implements RememberService {
         }
 
         // 判断该取什么记忆状态的userWord对象
+        // 不太懂弄链表查询，只能那个Set存索引，查单词书的与UserWord,相同的wordId然后获取word对象
         List<UserWord> userWordList = selectByMemoryCount(userWordLambdaQueryWrapper, memoryCount);
-        //单词书的wordId
         List<Word> wordList = wordMapper.selectList(wordLambdaQueryWrapper);
         Set<Integer> firstWordIds = new TreeSet<>();
         firstWordIds = wordList.stream()
@@ -143,11 +145,11 @@ public class RememberServiceImpl implements RememberService {
                 .map(userWord -> userWord.getWordId())
                 .collect(Collectors.toSet());
         firstWordIds.addAll(secondWordIds);
-        Set<Integer> testIds = firstWordIds.stream()
+        Set<Integer> rememberIds = firstWordIds.stream()
                 .distinct()
                 .limit(rememberNumber)
                 .collect(Collectors.toSet());
-        List<Word> words = testIds.stream()
+        List<Word> words = rememberIds.stream()
                 .map(id -> wordMapper.selectById(id))   //根据id查询Word
                 .collect(Collectors.toList());
         for (Word word : words) {
@@ -271,15 +273,17 @@ public class RememberServiceImpl implements RememberService {
 //    }
 
     @Override
-    public ResponseResult RememberEnd(RememberEndDTO rememberEndDTO) {
+    public ResponseResult rememberEnd(RememberEndDTO rememberEndDTO) {
         List<RememberWordDTO> rememberWordVOList = rememberEndDTO.getRememberWordDTOList();
         List<UserWord> userWords = new ArrayList<>();
+        // for循环把每道题都拿出来
         for (RememberWordDTO rememberWordDTO : rememberWordVOList) {
             LambdaQueryWrapper<UserWord> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(UserWord::getUserId, rememberEndDTO.getUserId());
             // 获取wordId
             int wordId = rememberWordDTO.getWordId();
             queryWrapper.eq(UserWord::getWordId, wordId);
+            // 拿到userWord对象要是用户选择记得或者不记得，则改一下userWord的记忆状态
             UserWord userWord = userWordMapper.selectOne(queryWrapper);
             userWords.add(userWord);
             // 单词莱特纳盒子的级别

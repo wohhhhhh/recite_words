@@ -32,7 +32,7 @@ public enum AppHttpCodeEnum {
     STARTDATE_NOT_STANDARDIZED(521,"开始日期必须大于今天" ),
     MEMORYSTATE_NOT_CORRECT(522,"记忆状态不符合规范" ),
     NOT_THIS_WORD(523, "没有该单词"),
-    REMEMBERNUMBER_TO_BIG(524, "测试数量过大"),
+    REMEMBERNUMBER_TO_BIG(524, "记忆数量过大"),
     WORDBOOKID_NOT_NULL(525,"单词书id不能为null" );
     int code;
     String msg;

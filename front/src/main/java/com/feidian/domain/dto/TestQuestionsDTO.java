@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestQuestionsDTO {
-    private Integer word_id;
-
+    private Integer wordId;
     private String choice;
     private Boolean isEnglishChooseChinese;
 }

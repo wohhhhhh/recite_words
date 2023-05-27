@@ -32,9 +32,7 @@ public class Test  {
     private Integer wordbookId;
     
     private String wordIds;
-    
-    private Integer isEnglishChooseChinese;
-    
+
     private LocalDate startTime;
     
     private LocalDate endTime;

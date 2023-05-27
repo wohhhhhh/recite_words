@@ -27,6 +27,6 @@ public class RememberController {
 
     @PostMapping("/end")
     public ResponseResult testEnd(@RequestBody RememberEndDTO rememberEndDTO){
-        return rememberService.RememberEnd(rememberEndDTO);
+        return rememberService.rememberEnd(rememberEndDTO);
     }
 }
