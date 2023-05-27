@@ -33,7 +33,6 @@ public class WordbookServiceImpl implements WordbookService {
 
     @Override
     public ResponseResult showBookList() {
-        //TODO 用户可以看单词不记得次数和单词状态
         //查询所有的单词书信息
         List<Wordbook> bookList = wordbookMapper.selectList(null);
 
