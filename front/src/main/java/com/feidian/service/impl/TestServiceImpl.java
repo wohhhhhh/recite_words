@@ -1,6 +1,7 @@
 package com.feidian.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -67,17 +68,44 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         queryWrapper.eq(Test::getUserId, userId);
         //查询List实体
         List<Test> tests = testService.list(queryWrapper);
-        List<TestDetailVO> vo;
+
+        // 如果是测试数据为空，则返回空集合
         if (tests == null || tests.size() == 0) {
-            vo = Collections.emptyList();
-        } else if (tests.size() == 1) {
-            vo = Collections.singletonList(BeanCopyUtils.copyBean(tests.get(0), TestDetailVO.class));
-        } else {
-            vo = BeanCopyUtils.copyBeanList(tests,TestDetailVO.class);
+            return ResponseResult.okResult(Collections.emptyList());
         }
-        return ResponseResult.okResult(vo);
+
+        // 如果测试数据是单个的
+        if (tests.size() == 1) {
+            Test test = tests.get(0);
+            TestDetailVO testDetailVO = BeanCopyUtils.copyBean(test, TestDetailVO.class);
+
+            // 解析wordIds,查询词条信息
+            List<Integer> wordIds = JSONArray.parseArray(test.getWordIds(), Integer.class);
+            List<Word> words = wordService.listByIds(wordIds);
+            List<WordVO> wordVOS = BeanCopyUtils.copyBeanList(words, WordVO.class);
+            testDetailVO.setWordVOList(wordVOS);
+
+            return ResponseResult.okResult(Collections.singletonList(testDetailVO));
+        }
+
+        // 有多个测试数据
+        List<TestDetailVO> testDetailVOS = new ArrayList<>();
+        for (Test test : tests) {
+            TestDetailVO testDetailVO = BeanCopyUtils.copyBean(test, TestDetailVO.class);
+
+            // 解析wordIds,查询词条信息
+            List<Integer> wordIds = JSONArray.parseArray(test.getWordIds(), Integer.class);
+            List<Word> words = wordService.listByIds(wordIds);
+            List<WordVO> wordVOS = BeanCopyUtils.copyBeanList(words, WordVO.class);
+            testDetailVO.setWordVOList(wordVOS);
+
+            testDetailVOS.add(testDetailVO);
+        }
+
+        return ResponseResult.okResult(testDetailVOS);
     }
-    
+
+
     int testNumber=2;
     int correct=0;
     //把集合提出来不就都可以用了
@@ -224,65 +252,104 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         return ResponseResult.okResult(vo);
     }
 
+    /**
+     * 组合生成试题列表
+     * @param words 单词列表
+     * @param englishChooseChineseNumber 英文选中文题数量
+     * @return 试题列表
+     */
     private List<TestQuestionVO> packageTestQuestionVOS(List<Word> words, int englishChooseChineseNumber) {
-        int testNumber=1;
         List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
+        int testQuestionId = 1;
+        // 生成英文选中文试题
+        testQuestionVOS.addAll(generateQuestions(words, englishChooseChineseNumber, true, testQuestionId));
+        testQuestionId += englishChooseChineseNumber;
 
-        // 生成英文选中文题目
-        for (int i = 0; i < englishChooseChineseNumber; i++) {
-            Word word = words.get(i);
-            TestQuestionVO testQuestionVO = new TestQuestionVO();
-            testQuestionVO.setFin(false);
-            testQuestionVO.setFirstOption(word.getMeaningChinese());
-            testQuestionVO.setTitle(word.getValue());
-            // 生成3个选项,并添加到TestQuestionVO
-            for (int j = 0; j < 3; j++) {
-                int index = (int) (Math.random() * words.size());
-                Word oneWord = words.get(index);
-                if (j == 0) {
-                    testQuestionVO.setSecondOption(oneWord.getMeaningChinese());
-                } else if (j == 1) {
-                    testQuestionVO.setThirdOption(oneWord.getMeaningChinese());
-                } else {
-                    testQuestionVO.setFourOption(oneWord.getMeaningChinese());
-                }
-            }
-
-            testQuestionVO.setTestQuestionId(testNumber);
-            testQuestionVO.setIsEnglishChooseChinese(true);
-            testQuestionVOS.add(testQuestionVO);
-            testNumber++;
-        }
-
-        // 生成中文选英文题目
-        for (int i = (int)englishChooseChineseNumber; i < words.size(); i++) {
-            Word word = words.get(i);
-            TestQuestionVO testQuestionVO = new TestQuestionVO();
-            testQuestionVO.setFin(false);
-            testQuestionVO.setTitle(word.getMeaningChinese());
-            testQuestionVO.setFirstOption(word.getValue());
-
-            for (int j = 0; j < 3; j++) {
-                int index = (int) (Math.random() * words.size());
-                Word oneWord = words.get(index);
-                if (j == 0) {
-                    testQuestionVO.setSecondOption(oneWord.getValue());
-                } else if (j == 1) {
-                    testQuestionVO.setThirdOption(oneWord.getValue());
-                } else {
-                    testQuestionVO.setFourOption(oneWord.getValue());
-                }
-            }
-
-            testQuestionVO.setTestQuestionId(testNumber);
-            testQuestionVO.setIsEnglishChooseChinese(false);
-            testQuestionVOS.add(testQuestionVO);
-            testNumber++;
-        }
-
+        // 生成中文选英文试题
+        testQuestionVOS.addAll(generateQuestions(words, words.size() - englishChooseChineseNumber, false, testQuestionId));
         return testQuestionVOS;
     }
-
+    /**
+     * 生成试题
+     * @param words 单词列表
+     * @param number 生成试题数量
+     * @param isEnglishChooseChinese 是否生成英文选中文试题
+     * @param startId 试题起始ID
+     * @return 试题列表
+     */
+    private List<TestQuestionVO> generateQuestions(List<Word> words, int number, boolean isEnglishChooseChinese, int startId) {
+        // 测试题目集合
+        List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
+        for (int i = 0; i < number; i++) {
+            Word word = words.get(i);
+            TestQuestionVO testQuestionVO = new TestQuestionVO();
+            // 设置试题ID
+            testQuestionVO.setTestQuestionId(startId++);
+            // 设置是否英文选中文试题
+            testQuestionVO.setIsEnglishChooseChinese(isEnglishChooseChinese);
+            if (isEnglishChooseChinese) {
+                // 设置英文题目
+                testQuestionVO.setTitle(word.getValue());
+                // 获取4个随机选项
+                List<String> options = getOptions(words, word.getMeaningChinese());
+                // 设置4个选项
+                testQuestionVO.setFirstOption(options.get(0));
+                testQuestionVO.setSecondOption(options.get(1));
+                testQuestionVO.setThirdOption(options.get(2));
+                testQuestionVO.setFourOption(options.get(3));
+            } else {
+                // 设置中文题目
+                testQuestionVO.setTitle(word.getMeaningChinese());
+                // 设置正确选项
+                testQuestionVO.setFirstOption(word.getValue());
+                for (int j = 0; j < 3; j++) {
+                    int index = (int) (Math.random() * words.size());
+                    Word oneWord = words.get(index);
+                    switch (j) {
+                        case 0:
+                            // 设置第二选项
+                            testQuestionVO.setSecondOption(oneWord.getValue());
+                            break;
+                        case 1:
+                            // 设置第三选项
+                            testQuestionVO.setThirdOption(oneWord.getValue());
+                            break;
+                        case 2:
+                            // 设置第四选项
+                            testQuestionVO.setFourOption(oneWord.getValue());
+                            break;
+                    }
+                }
+            }
+            testQuestionVOS.add(testQuestionVO);
+        }
+        return testQuestionVOS;
+    }
+    /**
+     * 获取随机选项
+     * @param words 单词列表
+     * @param correct 正确选项文本
+     * @return 包含正确选项的4个选项列表
+     */
+    private List<String> getOptions(List<Word> words, String correct) {
+        List<String> options = Arrays.asList(
+                correct,
+                getRandomOption(words),
+                getRandomOption(words),
+                getRandomOption(words)
+        );
+        Collections.shuffle(options);
+        return options;
+    }
+    /**
+     * 随机获取一个单词的中文意思
+     * @param words 单词列表
+     * @return 单词中文意思
+     */
+    private String getRandomOption(List<Word> words) {
+        int index = (int) (Math.random() * words.size());
+        return words.get(index).getMeaningChinese();
+    }
 
 //    @Override
 //    public ResponseResult testConduct(TestConductDTO testConductDTO) {

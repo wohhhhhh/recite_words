@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,8 +19,6 @@ public class TestDetailVO {
 
     private Integer wordbookId;
 
-    private String wordIds;
-
     private LocalDate startTime;
 
     private LocalDate endTime;
@@ -29,5 +28,7 @@ public class TestDetailVO {
     private Integer accuracy;
 
     private Integer testNumber;
+
+    private List<WordVO> wordVOList;
 
 }

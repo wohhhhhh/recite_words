@@ -23,7 +23,7 @@ public class TestController{
     TestService testService;
 
     @GetMapping("/{user_id}")
-    public ResponseResult viewWordBookDetail(@PathVariable("user_id")Integer userId){
+    public ResponseResult viewTestDetail(@PathVariable("user_id")Integer userId){
         return testService.viewTestDetail(userId);
     }
 
