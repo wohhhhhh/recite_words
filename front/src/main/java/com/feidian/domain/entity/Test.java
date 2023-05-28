@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import springfox.documentation.spring.web.json.Json;
 
 /**
  * (Test)表实体类
@@ -37,7 +36,7 @@ public class Test  {
     
     private LocalDate endTime;
     
-    private Duration testDuration;
+    private String testDuration;
     
     private Integer accuracy;
     

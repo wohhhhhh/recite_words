@@ -23,7 +23,7 @@ public class TestDetailVO {
 
     private LocalDate endTime;
 
-    private LocalTime testDuration;
+    private String testDuration;
 
     private Integer accuracy;
 

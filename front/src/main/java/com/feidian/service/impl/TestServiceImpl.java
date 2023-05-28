@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -281,6 +283,7 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         List<Word> wordList = wordMapper.selectList(lambdaQueryWrapper);
         // 测试题目集合
         List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
+        Collections.shuffle(words);
         for (int i = 0; i < number; i++) {
             Word word = words.get(i);
             TestQuestionVO testQuestionVO = new TestQuestionVO();
@@ -417,7 +420,6 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
 
     @Override
     public ResponseResult testEnd(TestEndDTO testEndDTO) {
-        //TODO 允许答案为空值
         TestEndVO testEndVO = new TestEndVO();
         List<QuestionResultVO> questionResults = new ArrayList<>();
         List<TestQuestionsDTO> testQuestionsDTOS = testEndDTO.getTestQuestionsDTOS();
@@ -456,8 +458,16 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         test.setGmtModified(now);
         LocalDate endTime = LocalDate.now();
         test.setEndTime(endTime);
-        Duration duration = Duration.between(test.getGmtCreate().toInstant(), test.getGmtCreate().toInstant());
-        test.setTestDuration(duration);
+        Date gmtCreate = test.getGmtCreate();
+        Instant start = gmtCreate.toInstant();
+        Instant end = now.toInstant();
+        Duration duration = Duration.between(start,end);
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes() % 60;
+        long seconds = duration.getSeconds() % 60;
+        String timeDuration = hours + ":" + minutes + ":" + seconds;
+        test.setTestDuration(timeDuration);
+        updateById(test);
         TestDetailVO testDetailVO=BeanCopyUtils.copyBean(test, TestDetailVO.class);
         testEndVO.setTestDetailVO(testDetailVO);
         return ResponseResult.okResult(testEndVO);
