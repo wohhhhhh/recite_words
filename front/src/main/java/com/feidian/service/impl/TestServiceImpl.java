@@ -223,14 +223,20 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
                 .map(userWord -> userWord.getWordId())
                 .collect(Collectors.toSet());
         firstWordIds.addAll(secondWordIds);
+
+
+        // 这个毛病
         Set<Integer> testIds = firstWordIds.stream()
                 .distinct()
                 .limit(testNumber)
                 .collect(Collectors.toSet());
         // 转成JSON格式
         String wordIdsJson = JSON.toJSONString(testIds);
+        // 存早了
         // 保存到test
         test.setWordIds(wordIdsJson);
+        // 建立个wordId,跟着打包题目方法传进去，
+
         // 从words中排除graspedWordIds中的wordId
         // 保存到数据库
         testMapper.insert(test);
@@ -242,8 +248,8 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         // 使用BeanCopyUtils拷贝对象
         TestStartVO vo = BeanCopyUtils.copyBean(test,TestStartVO.class);
         vo.setTestId(testId);
-        int testMinutes=5*words.size();
-        vo.setTestMinutes(testMinutes);
+        int testSeconds=5*words.size();
+        vo.setTestSeconds(testSeconds);
         // 封装TestQuestion
         List<TestQuestionVO> testQuestionVOS=packageTestQuestionVOS(words,englishChooseChineseNumber);
         vo.setTestQuestionVOS(testQuestionVOS);
@@ -341,7 +347,7 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         List<String> options = new ArrayList<>();
         options.add(correct);
 
-        while (options.size() < 4) {
+        for (int i = 0; i < 4; i++) {
             int index = (int) (Math.random() * words.size());
             Word word = words.get(index);
             String option;

@@ -14,9 +14,9 @@ public class TestStartVO {
     private Integer testNumber;  // 剩余测试数量
     private Integer userId;
     private Integer wordbookId;
-    //测试多少分钟
-    private Integer testMinutes;
 
+    //测试多少秒
+    private Integer testSeconds;
     // 测试题目集合
     private List<TestQuestionVO> testQuestionVOS;
 

@@ -167,6 +167,7 @@ public class RememberServiceImpl implements RememberService {
         return ResponseResult.okResult(vo);
     }
 
+    // 莱特纳盒子选择
     private List<UserWord> selectByMemoryCount(LambdaQueryWrapper<UserWord> userWordLambdaQueryWrapper, int memoryCount) {
         Set<Integer> memoryStateSet = new HashSet<>();
         memoryStateSet.add(0);

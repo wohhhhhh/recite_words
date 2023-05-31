@@ -33,7 +33,9 @@ public enum AppHttpCodeEnum {
     MEMORYSTATE_NOT_CORRECT(522,"记忆状态不符合规范" ),
     NOT_THIS_WORD(523, "没有该单词"),
     REMEMBERNUMBER_TO_BIG(524, "记忆数量过大"),
-    WORDBOOKID_NOT_NULL(525,"单词书id不能为null" );
+    WORDBOOKID_NOT_NULL(525,"单词书id不能为null" ),
+    EMAIL_NOT_FORMAT(526,"邮箱不符合规范" ),
+    PHONE_NOT_FORMAT(527,"电话号码不符合规范" );
     int code;
     String msg;
 

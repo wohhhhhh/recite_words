@@ -18,9 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.regex.Pattern;
+
 
 @Service("userService")
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    final static Pattern partern = Pattern.compile("[a-zA-Z0-9]+[\\.]{0,1}[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z]+");
+
+    final static Pattern regex = Pattern.compile("0\\d{2,3}[-]?\\d{7,8}|0\\d{2,3}\\s?\\d{7,8}|13[0-9]\\d{8}|15[1089]\\d{8}");
     @Override
     public ResponseResult userInfo() {
         //获取当前用户id
@@ -82,6 +87,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //获取当前时间
         Date now = new Date();
 
+
+        if (emailFormat(user.getEmail())) {
+            throw new SystemException(AppHttpCodeEnum.EMAIL_NOT_FORMAT);
+        }
+        if (phoneFormat(user.getPhone())) {
+            throw new SystemException(AppHttpCodeEnum.PHONE_NOT_FORMAT);
+        }
+
+
         //设置gmt_create和gmt_modified字段值
         user.setGmtCreate(now);
         user.setGmtModified(now);
@@ -130,6 +144,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private boolean isPhoneExist(Integer phone) {
         return userMapper.selectCount(new QueryWrapper<User>().eq("phone", phone)) > 0;
+    }
+
+    /**
+     * 验证输入的邮箱格式是否符合
+     * @param email
+     * @return 是否合法
+     */
+    public static boolean emailFormat(String email){
+        boolean isMatch = partern.matcher(email).matches();
+        return isMatch;
+    }
+    public static boolean phoneFormat(String phone){
+        boolean isMatch = regex.matcher(phone).matches();
+        return isMatch;
     }
 
 }
