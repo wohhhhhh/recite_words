@@ -71,7 +71,6 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
         userPlan.setTotalDays(totalDays);
         userPlan.setWordbookId(wordbookId);
 
-        //TODO 根据所选的单词书id，和持续日期
 
         // 判断开始日期是否符合规范
         if(!IsStartDateStandardized(makeUserPlanDTO.getStartDate())){

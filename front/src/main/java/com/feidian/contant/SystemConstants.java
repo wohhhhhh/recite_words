@@ -10,4 +10,5 @@ public class SystemConstants {
     // 莱特纳盒子最多4级，最少0级
     public static final int USER_MASTERED = 4;
     public static final int MEMORY_STATE_LOWEST = 0;
+    public static final Integer USER_NEVER_REMENBER = 0;
 }

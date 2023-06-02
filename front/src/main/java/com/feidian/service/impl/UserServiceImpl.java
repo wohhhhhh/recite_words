@@ -23,9 +23,16 @@ import java.util.regex.Pattern;
 
 @Service("userService")
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    // 邮箱的规范
     final static Pattern partern = Pattern.compile("[a-zA-Z0-9]+[\\.]{0,1}[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z]+");
 
-    final static Pattern regex = Pattern.compile("0\\d{2,3}[-]?\\d{7,8}|0\\d{2,3}\\s?\\d{7,8}|13[0-9]\\d{8}|15[1089]\\d{8}");
+    /* 电话号码的格式
+    1. 以1开头
+    2. 除了第一和第二位有规则外,第三位到最后一位可以是0-9的任意数字
+    3. 总位数固定为11位
+    */
+
+    final static Pattern regex = Pattern.compile("^1\\d{10}$");
     @Override
     public ResponseResult userInfo() {
         //获取当前用户id
@@ -43,6 +50,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateUser.setPhone(user.getPhone());
         updateUser.setEmail(user.getEmail());
         updateUser.setGender(user.getGender());
+
+        if (!emailFormat(user.getEmail())) {
+            throw new SystemException(AppHttpCodeEnum.EMAIL_NOT_FORMAT);
+        }
+        if (!phoneFormat(user.getPhone())) {
+            throw new SystemException(AppHttpCodeEnum.PHONE_NOT_FORMAT);
+        }
         //获取当前时间
         Date now = new Date();
         updateUser.setGmtModified(now);
@@ -88,10 +102,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Date now = new Date();
 
 
-        if (emailFormat(user.getEmail())) {
+        if (!emailFormat(user.getEmail())) {
             throw new SystemException(AppHttpCodeEnum.EMAIL_NOT_FORMAT);
         }
-        if (phoneFormat(user.getPhone())) {
+        if (!phoneFormat(user.getPhone())) {
             throw new SystemException(AppHttpCodeEnum.PHONE_NOT_FORMAT);
         }
 

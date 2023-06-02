@@ -73,7 +73,10 @@ public class WordbookServiceImpl implements WordbookService {
             lambdaQueryWrapper.eq(UserWord::getUserId,userId);
             lambdaQueryWrapper.eq(UserWord::getWordId, wordVO.getId());
             UserWord userWord = userWordMapper.selectOne(lambdaQueryWrapper);
-            wordVO.setForgetTime(userWord.getForgetTime());
+            wordVO.setForgetTime(SystemConstants.USER_NEVER_REMENBER);
+            if (userWord!=null){
+                wordVO.setForgetTime(userWord.getForgetTime());
+            }
             if (userWord != null) {
                 wordVO.setIsFamiliar(SystemConstants.USER_IS_FAMILIAR);
             } else {

@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -230,16 +229,9 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
                 .distinct()
                 .limit(testNumber)
                 .collect(Collectors.toSet());
-        // 转成JSON格式
-        String wordIdsJson = JSON.toJSONString(testIds);
-        // 存早了
-        // 保存到test
-        test.setWordIds(wordIdsJson);
-        // 建立个wordId,跟着打包题目方法传进去，
 
         // 从words中排除graspedWordIds中的wordId
         // 保存到数据库
-        testMapper.insert(test);
         Integer testId = test.getId();
         List<Word> words = testIds.stream()
                 .map(id -> wordMapper.selectById(id))   //根据id查询Word
@@ -251,26 +243,29 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         int testSeconds=5*words.size();
         vo.setTestSeconds(testSeconds);
         // 封装TestQuestion
-        List<TestQuestionVO> testQuestionVOS=packageTestQuestionVOS(words,englishChooseChineseNumber);
+        List<TestQuestionVO> testQuestionVOS=packageTestQuestionVOS(words,englishChooseChineseNumber,test);
+        testMapper.insert(test);
         vo.setTestQuestionVOS(testQuestionVOS);
         return ResponseResult.okResult(vo);
     }
 
     /**
      * 组合生成试题列表
-     * @param words 单词列表
+     *
+     * @param words                      单词列表
      * @param englishChooseChineseNumber 英文选中文题数量
+     * @param test
      * @return 试题列表
      */
-    private List<TestQuestionVO> packageTestQuestionVOS(List<Word> words, int englishChooseChineseNumber) {
+    private List<TestQuestionVO> packageTestQuestionVOS(List<Word> words, int englishChooseChineseNumber, Test test) {
         List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
         int testQuestionId = 1;
         // 生成英文选中文试题
-        testQuestionVOS.addAll(generateQuestions(words, englishChooseChineseNumber, true, testQuestionId));
+        testQuestionVOS.addAll(generateQuestions(words, englishChooseChineseNumber, true, testQuestionId,test));
         testQuestionId += englishChooseChineseNumber;
 
         // 生成中文选英文试题
-        testQuestionVOS.addAll(generateQuestions(words, words.size() - englishChooseChineseNumber, false, testQuestionId));
+        testQuestionVOS.addAll(generateQuestions(words, words.size() - englishChooseChineseNumber, false, testQuestionId, test));
         for (TestQuestionVO testQuestionVO : testQuestionVOS) {
             testQuestionVO.setFin(false);
         }
@@ -278,18 +273,29 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
     }
     /**
      * 生成试题
-     * @param words 单词列表
-     * @param number 生成试题数量
+     *
+     * @param words                  单词列表
+     * @param number                 生成试题数量
      * @param isEnglishChooseChinese 是否生成英文选中文试题
-     * @param startId 试题起始ID
+     * @param startId                试题起始ID
+     * @param test
      * @return 试题列表
      */
-    private List<TestQuestionVO> generateQuestions(List<Word> words, int number, boolean isEnglishChooseChinese, int startId) {
+    private List<TestQuestionVO> generateQuestions(List<Word> words, int number, boolean isEnglishChooseChinese, int startId, Test test) {
         LambdaQueryWrapper<Word> lambdaQueryWrapper=new LambdaQueryWrapper<>();
         List<Word> wordList = wordMapper.selectList(lambdaQueryWrapper);
         // 测试题目集合
         List<TestQuestionVO> testQuestionVOS = new ArrayList<>();
         Collections.shuffle(words);
+        List<Integer> testIds =words.stream()
+                .map(word -> word.getId())
+                .collect(Collectors.toList());
+        // TODO
+        // 转成JSON格式
+        String wordIdsJson = JSON.toJSONString(testIds);
+        // 存早了
+        // 保存到test
+        test.setWordIds(wordIdsJson);
         for (int i = 0; i < number; i++) {
             Word word = words.get(i);
             TestQuestionVO testQuestionVO = new TestQuestionVO();
@@ -348,8 +354,7 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         options.add(correct);
 
         for (int i = 0; i < 4; i++) {
-            int index = (int) (Math.random() * words.size());
-            Word word = words.get(index);
+            Word word = words.get(i);
             String option;
             if (isEnglishChooseChinese){
                 option=word.getMeaningChinese();
