@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.feidian.mapper.TestMapper">
+    <select id="selectRandomWordIds" resultType="java.lang.Integer">
+        select *
+        from word
+        where word.id in (
+        select word_id from #{userWords}
+        where is_familiar = 1
+        ) and wordbook_id=#{wordbookId}
+        ORDER BY RAND()
+        LIMIT #{testNumber}
+    </select>
+</mapper>

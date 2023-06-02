@@ -18,6 +18,7 @@ import com.feidian.service.TestService;
 import com.feidian.service.UserWordService;
 import com.feidian.service.WordService;
 import com.feidian.utils.BeanCopyUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -193,7 +194,7 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         userWordLambdaQueryWrapper.eq(UserWord::getUserId,userId);
         LambdaQueryWrapper<Word> wordLambdaQueryWrapper = new LambdaQueryWrapper<>();
         String[] judgingCondition = testStartDTO.getJudgingCondition();
-        if (judgingCondition !=null){
+        if (judgingCondition != null) {
             List<String> list = Arrays.asList(judgingCondition);
             boolean contains = list.contains("单词书");
             if (contains) {
@@ -201,13 +202,18 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
             }
             contains = list.contains("已背单词");
             if (contains) {
-                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar,SystemConstants.USER_IS_FAMILIAR);
+                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar, SystemConstants.USER_IS_FAMILIAR);
             }
             contains = list.contains("未背单词");
             if (contains) {
-                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar,SystemConstants.USER_IS_NOT_FAMILIAR);
+                userWordLambdaQueryWrapper.eq(UserWord::getIsFamiliar, SystemConstants.USER_IS_NOT_FAMILIAR);
             }
+
+
         }
+        List<UserWord> userWords = userWordMapper.selectList(userWordLambdaQueryWrapper);
+
+        testMapper.selectRandomWordIds(testNumber,wordbookId,userWords);
 
         //单词书的wordId
         List<Word> wordList=wordMapper.selectList(wordLambdaQueryWrapper);
