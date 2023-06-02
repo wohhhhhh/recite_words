@@ -290,7 +290,6 @@ public class TestServiceImpl extends ServiceImpl<TestMapper, Test> implements Te
         List<Integer> testIds =words.stream()
                 .map(word -> word.getId())
                 .collect(Collectors.toList());
-        // TODO
         // 转成JSON格式
         String wordIdsJson = JSON.toJSONString(testIds);
         // 存早了
