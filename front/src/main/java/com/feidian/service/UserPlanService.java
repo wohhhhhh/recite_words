@@ -1,6 +1,7 @@
 package com.feidian.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.feidian.domain.dto.MakeUserPlanDTO;
 import com.feidian.domain.entity.ResponseResult;
 import com.feidian.domain.entity.UserPlan;
 
@@ -15,6 +16,6 @@ public interface UserPlanService extends IService<UserPlan> {
 
     ResponseResult viewPlanDetail(Integer id);
 
-    ResponseResult makePlan(UserPlan userPlan);
+    ResponseResult makePlan(MakeUserPlanDTO makeUserPlanDTO);
 }
 

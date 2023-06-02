@@ -1,14 +1,18 @@
 package com.feidian.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.feidian.domain.dto.MakeUserPlanDTO;
 import com.feidian.domain.entity.ResponseResult;
 import com.feidian.domain.entity.UserPlan;
+import com.feidian.domain.entity.Word;
 import com.feidian.domain.entity.Wordbook;
 import com.feidian.domain.vo.UserPlanVO;
 import com.feidian.enums.AppHttpCodeEnum;
 import com.feidian.handler.exception.SystemException;
 import com.feidian.mapper.UserPlanMapper;
+import com.feidian.mapper.WordMapper;
 import com.feidian.service.UserPlanService;
 import com.feidian.utils.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,9 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
     @Autowired
     UserPlanMapper userPlanMapper;
 
+    @Autowired
+    WordMapper wordMapper;
+
     @Override
     public ResponseResult viewPlanDetail(Integer id) {
             // 查询单词计划信息
@@ -38,34 +45,41 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
     }
 
     @Override
-    public ResponseResult makePlan(UserPlan userPlan) {
+    public ResponseResult makePlan(MakeUserPlanDTO makeUserPlanDTO) {
+        // 先把数据取出
+        LocalDate startDate = makeUserPlanDTO.getStartDate();
+        Integer userId = makeUserPlanDTO.getUserId();
+        Integer totalDays = makeUserPlanDTO.getTotalDays();
+        Integer wordbookId = makeUserPlanDTO.getWordbookId();
+
         //对数据进行非空判断
-        if (userPlan.getStartDate() == null) {
+        if (startDate == null) {
             throw new SystemException(AppHttpCodeEnum.STARTDATE_NOT_NULL);
         }
-        if (userPlan.getUserId() == null) {
+        if (userId == null) {
             throw new SystemException(AppHttpCodeEnum.USERID_NOT_NULL);
         }
-        if (userPlan.getTotalDays() == null) {
+        if (totalDays == null) {
             throw new SystemException(AppHttpCodeEnum.TOTALDAYS_NOT_NULL);
         }
-        if (userPlan.getWordsPerDay() == null) {
-            throw new SystemException(AppHttpCodeEnum.WORDSPERDAY_NOT_NULL);
-        }
-        if (userPlan.getWordbookId() == null) {
+        if (wordbookId == null) {
             throw new SystemException(AppHttpCodeEnum.WORDBOOKID_NOT_NULL);
         }
-        userPlan.setFinishedDays(0);
-        userPlan.setFinishedWords(0);
-        userPlan.setTodayFinishedWords(0);
-        userPlan.setInPlanFinishedWords(0);
-        userPlan.setWordsToReview(0);
+        UserPlan userPlan=new UserPlan();
+        userPlan.setUserId(userId);
+        userPlan.setStartDate(startDate);
+        userPlan.setTotalDays(totalDays);
+        userPlan.setWordbookId(wordbookId);
+
+        //TODO 根据所选的单词书id，和持续日期
+
         // 判断开始日期是否符合规范
-        if(!IsStartDateStandardized(userPlan.getStartDate())){
+        if(!IsStartDateStandardized(makeUserPlanDTO.getStartDate())){
             throw new SystemException(AppHttpCodeEnum.STARTDATE_NOT_STANDARDIZED);
         }
         // 计算结束日期
-        countEndDate(userPlan);
+        LocalDate endDate = countEndDate(makeUserPlanDTO);
+        userPlan.setEndDate(endDate);
 
         //获取当前时间
         Date now = new Date();
@@ -74,10 +88,18 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
         userPlan.setGmtCreate(now);
         userPlan.setGmtModified(now);
 
+        // 有些默认值为0的字段
+        Integer wordsPerDays=countWordsPerDay(wordbookId,totalDays);
+        userPlan.setWordsPerDay(wordsPerDays);
+        userPlan.setFinishedDays(0);
+        userPlan.setFinishedWords(0);
+        userPlan.setInPlanFinishedWords(0);
+        userPlan.setTodayFinishedWords(0);
+        userPlan.setWordsToReview(0);
         //存入数据库
         // 查询userPlan表是否存在userId对应的记录
         QueryWrapper<UserPlan> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userPlan.getUserId());
+        queryWrapper.eq("user_id", makeUserPlanDTO.getUserId());
         UserPlan plan = getOne(queryWrapper);
 
         if (plan != null) {
@@ -92,6 +114,7 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
 
     }
 
+    // 开始日期怎么说不能小于今天吧
     private boolean IsStartDateStandardized(LocalDate startDate) {
         //获取当前日期
         LocalDate now = LocalDate.now();
@@ -104,15 +127,35 @@ public class UserPlanServiceImpl extends ServiceImpl<UserPlanMapper, UserPlan> i
         }
     }
 
-    private void countEndDate(UserPlan userPlan){
+    private LocalDate countEndDate(MakeUserPlanDTO makeUserPlanDTO){
         //获取startDate,现在应是LocalDate类型
-        LocalDate startDate = userPlan.getStartDate();
-        Integer totalDays = userPlan.getTotalDays();
+        LocalDate startDate = makeUserPlanDTO.getStartDate();
+        Integer totalDays = makeUserPlanDTO.getTotalDays();
 
         //使用LocalDate计算endDate
         LocalDate endDate = startDate.plusDays(totalDays);
 
-        //设置endDate,现在也是LocalDate类型
-        userPlan.setEndDate(endDate);
+        return endDate;
+    }
+
+    private Integer countWordsPerDay(Integer wordbookId, Integer totalDays) {
+        // 1. 查询该单词本中的所有单词
+        LambdaQueryWrapper<Word> lambdaQueryWrapper=new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Word::getWordbookId,wordbookId);
+        List<Word> words = wordMapper.selectList(lambdaQueryWrapper);
+
+        // 2. 统计单词总数
+        int totalCount = words.size();
+
+        // 3. 计算每天需要背的单词数
+        int countPerDay = totalCount / totalDays;
+
+        // 4. 最后一天需要背的单词数可能少一些,处理这种情况
+        int lastDayCount = totalCount % totalDays;
+        if (lastDayCount > 0) {
+            countPerDay++;
+        }
+
+        return countPerDay;
     }
 }

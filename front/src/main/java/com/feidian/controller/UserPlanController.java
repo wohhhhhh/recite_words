@@ -2,6 +2,7 @@ package com.feidian.controller;
 
 
 
+import com.feidian.domain.dto.MakeUserPlanDTO;
 import com.feidian.domain.entity.ResponseResult;
 import com.feidian.domain.entity.UserPlan;
 import com.feidian.service.UserPlanService;
@@ -26,8 +27,8 @@ public class UserPlanController {
     }
 
     @PostMapping("/make")
-    public ResponseResult makePlan(@RequestBody UserPlan userPlan){
-        return userPlanService.makePlan(userPlan);
+    public ResponseResult makePlan(@RequestBody MakeUserPlanDTO makeUserPlanDTO){
+        return userPlanService.makePlan(makeUserPlanDTO);
     }
 }
 
